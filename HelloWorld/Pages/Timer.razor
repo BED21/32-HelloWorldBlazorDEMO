@@ -1,0 +1,41 @@
+﻿@page "/timer"
+@implements IDisposable
+<PageTitle>Pomodoro Timer (@remaining)</PageTitle>
+
+<div class="timer">
+    @remaining
+</div>
+<button class="btn btn-primary" @onclick="Start">Start</button>
+<button class="btn btn-secondary" @onclick="Stop">Stop</button>
+
+@code{
+    private int timeLeft = 25 * 60; // Återstående tid, i sekunder
+    private string remaining => TimeSpan.FromSeconds(timeLeft).ToString(@"mm\:ss");
+
+    PeriodicTimer? timer;
+
+    protected async Task Start()
+    {
+        timer?.Dispose();
+        timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+        while (await timer.WaitForNextTickAsync())
+        {
+            if (timeLeft > 0)
+            {
+                timeLeft -= 1;
+                //Console.WriteLine("timer ticked");
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+    }
+
+    protected void Stop()
+    {
+        timer?.Dispose();
+    }
+
+    public void Dispose()
+    {
+        timer?.Dispose();
+    }
+}
